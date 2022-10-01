@@ -97,7 +97,7 @@ def proxy(client_socket,client_IP):
 
 def main():
     # check arguments
-    if(len(sys.argv)!=2 and len(sys.argv)!=3):
+    if(len(sys.argv)!=2 and len(sys.argv)!=3): # Error Checking
         print("Incorrect number of arguments. \nUsage python3 http_proxy.py PORT")
         print("Incorrect number of arguments. \nUsage python3 http_proxy.py PORT Log")
         sys.exit()
