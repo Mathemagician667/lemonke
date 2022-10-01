@@ -89,10 +89,25 @@ def CONNECT ():
     # Insert Code for CONNECT Requests here
     pass
 
-def non_CONNECT (mod_header, parsed):
+def non_CONNECT (client_data, parsed, client_socket, server_socket):
     # Insert Code for non-CONNECT Requests here
-    pass
+    mod_request = modify_headers(client_data) # Modify the client data (header) for the HTTP GET Request
     
+    server_socket.connect((parsed[2], parsed[1])) # Connect to the server and send the modified HTTP GET Request
+    server_socket.sendall(mod_request)
+    
+    while True:
+        try:
+            server_info = server_socket.recv(BUFFER_SIZE) # Recieve the HTTP Response from the server, limited by buffer size
+            if not server_info: break # Continue to recieve data from the server until there is no data sent
+            client_socket.sendall(server_info)
+        except:
+            server_socket.close()
+            client_socket.close()
+            break
+
+    return
+
 # TODO: IMPLEMENT THIS METHOD 
 def proxy(client_socket,client_IP):
     client_data = client_socket.recv(BUFFER_SIZE) # Enter recv mode
@@ -104,8 +119,7 @@ def proxy(client_socket,client_IP):
     if parsed[3]: # If request is a CONNECT request
         pass
     else: # Else request is a non-CONNECT request
-        mod_header = modify_headers(client_data) # Modify the client data (header) for the HTTP GET Request
-        non_CONNECT(mod_header, parsed, client_socket)
+        non_CONNECT(client_data, parsed, client_socket, server_socket)
 
     global LOG_FLAG
     
