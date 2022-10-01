@@ -7,6 +7,7 @@ import errno
 import time
 import json
 import uuid
+from xmlrpc.client import Server
 
 LOG_FLAG=False
 BUFFER_SIZE = 2048
@@ -85,23 +86,41 @@ def tunnel(from_socket, to_socket):
             to_socket.close()
             return
 
-def CONNECT ():
+def CONNECT (parsed, client_socket, server_socket):
     # Insert Code for CONNECT Requests here
-    pass
+    try:
+        server_socket.connect((parsed[2], parsed[1])) # Connect to the server with a TCP Handshake
+        client_socket.sendall(b"HTTP 200 OK")
+    except:
+        client_socket.sendall(b"HTTP 502 Bad Gateway")
+        return
+    
+    # Create two new tunneling threads for client --> server and server --> client
+    client_to_server = threading.Thread(target=tunnel, args=(client_socket, server_socket))
+    server_to_client = threading.Thread(target=tunnel, args=(server_socket, client_socket))
+    client_to_server.start()
+    server_to_client.start()
+
+    return 
 
 def non_CONNECT (client_data, parsed, client_socket, server_socket):
     # Insert Code for non-CONNECT Requests here
     mod_request = modify_headers(client_data) # Modify the client data (header) for the HTTP GET Request
     
-    server_socket.connect((parsed[2], parsed[1])) # Connect to the server and send the modified HTTP GET Request
-    server_socket.sendall(mod_request)
+    try:
+        server_socket.connect((parsed[2], parsed[1])) # Connect to the server with a TCP Handshake
+    except:
+        client_socket.sendall(b"HTTP 502 Bad Gateway") # If TCP Connection fails, send Error to client and return
+        return
+
+    server_socket.sendall(mod_request) # Send the modified HTTP GET Request to the server
     
     while True:
         try:
             server_info = server_socket.recv(BUFFER_SIZE) # Recieve the HTTP Response from the server, limited by buffer size
             if not server_info: break # Continue to recieve data from the server until there is no data sent
             client_socket.sendall(server_info)
-        except:
+        except: # If there is an error, close both proxy directed sockets and break
             server_socket.close()
             client_socket.close()
             break
@@ -117,7 +136,7 @@ def proxy(client_socket,client_IP):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     if parsed[3]: # If request is a CONNECT request
-        pass
+        CONNECT(parsed, client_socket, server_socket)
     else: # Else request is a non-CONNECT request
         non_CONNECT(client_data, parsed, client_socket, server_socket)
 
