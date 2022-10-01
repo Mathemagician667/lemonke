@@ -84,15 +84,31 @@ def tunnel(from_socket, to_socket):
             from_socket.close()
             to_socket.close()
             return
-        
 
+def CONNECT ():
+    # Insert Code for CONNECT Requests here
+    pass
+
+def non_CONNECT (mod_header, parsed):
+    # Insert Code for non-CONNECT Requests here
+    pass
+    
 # TODO: IMPLEMENT THIS METHOD 
 def proxy(client_socket,client_IP):
-    '''
-    Modify this comment and add your code here
-    '''
+    client_data = client_socket.recv(BUFFER_SIZE) # Enter recv mode
+
+    parsed = parse_server_info(client_data) # Parse the header to determine the server
+
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    if parsed[3]: # If request is a CONNECT request
+        pass
+    else: # Else request is a non-CONNECT request
+        mod_header = modify_headers(client_data) # Modify the client data (header) for the HTTP GET Request
+        non_CONNECT(mod_header, parsed, client_socket)
+
     global LOG_FLAG
-    pass
+    
 
 
 def main(): # this is the main function
