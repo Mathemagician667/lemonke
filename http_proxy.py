@@ -95,8 +95,6 @@ def CONNECT (parsed, client_socket, server_socket):
         client_socket.sendall(b"HTTP 502 Bad Gateway")
         return
     
-    """NOTE: This section still needs Daemon Thread Implementation (IMPORTANT)!"""
-
     # Create two new tunneling threads for client --> server and server --> client
     client_to_server = threading.Thread(target=tunnel, args=(client_socket, server_socket))
     server_to_client = threading.Thread(target=tunnel, args=(server_socket, client_socket))
