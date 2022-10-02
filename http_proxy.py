@@ -100,6 +100,8 @@ def CONNECT (parsed, client_socket, server_socket):
     # Create two new tunneling threads for client --> server and server --> client
     client_to_server = threading.Thread(target=tunnel, args=(client_socket, server_socket))
     server_to_client = threading.Thread(target=tunnel, args=(server_socket, client_socket))
+    client_to_server.setDaemon(True)
+    server_to_client.setDaemon(True)
     client_to_server.start()
     server_to_client.start()
 
